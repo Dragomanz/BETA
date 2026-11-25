@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Education → Bedrock World Converter</title>
+<style>
+:root{--bg:#0f1a14;--card:#16251c;--line:#2a4234;--tx:#e9f3ec;--mu:#9bb5a4;--ac:#5fd38d;--ac2:#2e8b57;--warn:#ffcc66;--bad:#ff8a80;color-scheme:dark light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;padding:24px max(14px,env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left));font:400 16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--tx);background:radial-gradient(900px 500px at 0 0,#173626,transparent 60%),var(--bg)}
+main{max-width:780px;margin:0 auto;display:grid;gap:16px}
+h1{margin:0;font-size:clamp(26px,5vw,38px);line-height:1.15}
+.sub{margin:6px 0 0;color:var(--mu)}
+#drop{display:grid;place-items:center;gap:6px;text-align:center;padding:clamp(26px,6vw,48px) 18px;border:2px dashed var(--line);border-radius:20px;background:var(--card);cursor:pointer;transition:border-color .15s,background .15s}
+#drop:hover,#drop.over,#drop:focus-visible{border-color:var(--ac);background:#1a2e22;outline:none}
+#drop b{font-size:clamp(18px,3.4vw,22px)}
+#drop span{color:var(--mu);font-size:14px}
+#pick{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.btn{display:inline-block;font:700 15px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#06210f;background:var(--ac);border:0;border-radius:999px;padding:11px 20px;cursor:pointer;text-decoration:none;touch-action:manipulation}
+.btn:hover{background:#7be5a4}
+.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
+details{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px}
+summary{cursor:pointer;font-weight:700}
+details p{margin:8px 0 0;color:var(--mu);font-size:14px}
+label.chk{display:flex;gap:10px;align-items:flex-start;margin-top:10px;font-weight:600}
+label.chk input{width:20px;height:20px;margin-top:2px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:10px}
+.item h2{margin:0;font-size:18px;overflow-wrap:anywhere}
+.item .fn{color:var(--mu);font-size:13px;overflow-wrap:anywhere}
+.ok{color:var(--ac);font-weight:700}.err{color:var(--bad);font-weight:700}
+ul{margin:4px 0 0;padding-left:20px}li{margin:3px 0}
+.warn{color:var(--warn)}
+.bar{height:8px;border-radius:99px;background:#0c150f;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .15s}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+code{background:#0c150f;padding:1px 6px;border-radius:6px;font-size:.92em}
+.info{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 18px}
+.info h3{margin:0 0 6px;font-size:16px}
+.info p{margin:6px 0;color:var(--mu);font-size:14px}
+.foot{color:var(--mu);font-size:12.5px;text-align:center}
+:focus-visible{outline:3px solid #ffcc66;outline-offset:2px}
+@media (prefers-color-scheme:light){:root{--bg:#f2f8f4;--card:#fff;--line:#c9ddd0;--tx:#12261a;--mu:#4c6a58;--warn:#8a5a00;--bad:#b3261e;--ac:#17803f}.btn{color:#fff}.btn:hover{background:#1d9a4c}#drop:hover,#drop.over{background:#eaf5ee}code,.bar{background:#e4efe8}body{background:var(--bg)}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Education → Bedrock</h1>
+<p class="sub">Turn a Minecraft Education world (<code>.mceditworld</code> or <code>.mcworld</code>) into a world Minecraft Bedrock can open. It all happens on your device: nothing is uploaded.</p>
+</header>
+
+<label id="drop" tabindex="0" for="pick"><b>Drop your world file here</b><span>or tap to choose one or more files</span></label>
+<input id="pick" type="file" multiple>
+
+<details>
+<summary>Options</summary>
+<label class="chk"><input id="keep" type="checkbox"><span>Keep Education features switched on in Bedrock<br><small style="font-weight:400;color:var(--mu)">Only tick this if your world uses chemistry items or other Education-only blocks, and you will turn on “Education Edition” in the world’s settings in Bedrock. If a world will not open, leave this unticked.</small></span></label>
+</details>
+
+<section id="list" aria-live="polite"></section>
+
+<section class="info">
+<h3>How to open your converted world</h3>
+<p><b>Windows / Mac:</b> double-click the downloaded <code>.mcworld</code> file and Minecraft Bedrock imports it. <b>iPad / iPhone / Android:</b> open the file from your Files or Downloads app and choose Minecraft.</p>
+<p>Your original file is never changed. Keep it as a backup.</p>
+</section>
+
+<section class="info">
+<h3>What this does, and what it cannot do</h3>
+<p>Bedrock refuses worlds that are marked as Education worlds. This app clears those Education marks in the world’s settings file (<code>level.dat</code>) and repackages the world as a <code>.mcworld</code>. Every other file in the world is copied across unchanged.</p>
+<p>Education-only things (chalkboards, allow/deny/border blocks, cameras, Code Builder and similar) do not exist in regular Bedrock, so they can show up as missing or blank blocks. Your Bedrock must also be the same version as the Education app that last saved the world, or newer. I could not test against every world. Locked lesson worlds from the Education library are encrypted and cannot be converted.</p>
+</section>
+<p class="foot">Not affiliated with Mojang or Microsoft. “Minecraft” is a trademark of Mojang Synergies AB.</p>
+</main>
+
+<script>
+(function(){
+'use strict';
+var $=function(i){return document.getElementById(i)};
+function E(m){var e=new Error(m);e.friendly=true;return e}
+function u16(d,p){return d[p]|d[p+1]<<8}
+function u32(d,p){return (d[p]|d[p+1]<<8|d[p+2]<<16|d[p+3]<<24)>>>0}
+function i32(d,p){return d[p]|d[p+1]<<8|d[p+2]<<16|d[p+3]<<24}
+function w16(a,p,v){a[p]=v&255;a[p+1]=v>>>8&255}
+function w32(a,p,v){a[p]=v&255;a[p+1]=v>>>8&255;a[p+2]=v>>>16&255;a[p+3]=v>>>24&255}
+var TD=new TextDecoder('utf-8'),TE=new TextEncoder();
+
+/* ---------- CRC-32 ---------- */
+var CT=new Uint32Array(256);(function(){for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;CT[n]=c>>>0}})();
+function crc32(u){var c=0xFFFFFFFF;for(var i=0;i<u.length;i++)c=CT[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+
+/* ---------- inflate (RFC 1951), used only for the small level.dat file ---------- */
+var LB=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258],
+    LE=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],
+    DB=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],
+    DE=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],
+    CO=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
+function inflate(data){
+ var p=0,b=0,n=0,out=new Uint8Array(Math.max(1024,data.length*4)),o=0,fin;
+ function bits(c){while(n<c){if(p>=data.length)throw E('The world settings file is damaged (compressed data ended early).');b|=data[p++]<<n;n+=8}var v=b&((1<<c)-1);b>>>=c;n-=c;return v}
+ function put(v){if(o>=out.length){var t=new Uint8Array(out.length*2);t.set(out);out=t}out[o++]=v}
+ function build(l){var c=new Uint16Array(16),f=new Uint16Array(16),s=new Uint16Array(l.length),i;for(i=0;i<l.length;i++)c[l[i]]++;c[0]=0;for(i=1;i<15;i++)f[i+1]=f[i]+c[i];for(i=0;i<l.length;i++)if(l[i])s[f[l[i]]++]=i;return {c:c,s:s}}
+ function dec(h){var code=0,first=0,idx=0;for(var len=1;len<16;len++){code|=bits(1);var cnt=h.c[len];if(code-cnt<first)return h.s[idx+(code-first)];idx+=cnt;first+=cnt;first<<=1;code<<=1}throw E('The world settings file is damaged (bad compressed data).')}
+ var FL=null,FD=null;
+ do{
+  fin=bits(1);var type=bits(2),i;
+  if(type===0){b=0;n=0;if(p+4>data.length)throw E('Damaged compressed data.');var len=data[p]|data[p+1]<<8;p+=4;if(p+len>data.length)throw E('Damaged compressed data.');for(i=0;i<len;i++)put(data[p++])}
+  else if(type===1||type===2){
+   var lh,dh;
+   if(type===1){if(!FL){var l=[];for(i=0;i<144;i++)l[i]=8;for(;i<256;i++)l[i]=9;for(;i<280;i++)l[i]=7;for(;i<288;i++)l[i]=8;FL=build(l);var dl=[];for(i=0;i<30;i++)dl[i]=5;FD=build(dl)}lh=FL;dh=FD}
+   else{var nl=bits(5)+257,nd=bits(5)+1,nc=bits(4)+4,lens=new Array(19).fill(0);for(i=0;i<nc;i++)lens[CO[i]]=bits(3);var ch=build(lens),all=[],sym;
+    while(all.length<nl+nd){sym=dec(ch);if(sym<16)all.push(sym);else{var prev=0,rep;if(sym===16){if(!all.length)throw E('Damaged compressed data.');prev=all[all.length-1];rep=3+bits(2)}else if(sym===17)rep=3+bits(3);else rep=11+bits(7);while(rep--)all.push(prev)}}
+    lh=build(all.slice(0,nl));dh=build(all.slice(nl,nl+nd))}
+   for(;;){var s=dec(lh);if(s<256)put(s);else if(s===256)break;else{s-=257;if(s>=29)throw E('Damaged compressed data.');var ln=LB[s]+bits(LE[s]),ds=dec(dh);if(ds>=30)throw E('Damaged compressed data.');var dist=DB[ds]+bits(DE[ds]);if(dist>o)throw E('Damaged compressed data.');while(ln--){put(out[o-dist])}}}
+  }else throw E('Damaged compressed data.');
+ }while(!fin);
+ return out.subarray(0,o)}
+
+/* ---------- ZIP reading (only the small index is read; file data stays on disk) ---------- */
+async function readZip(file){
+ var size=file.size;if(size<22)throw E('That file is empty or is not a world file.');
+ var tl=Math.min(size,65557),tail=new Uint8Array(await file.slice(size-tl,size).arrayBuffer()),e=-1,i;
+ for(i=tl-22;i>=0;i--)if(tail[i]===0x50&&tail[i+1]===0x4b&&tail[i+2]===5&&tail[i+3]===6){e=i;break}
+ if(e<0)throw E('That does not look like a Minecraft world file (it is not a zip archive).');
+ var cnt=u16(tail,e+10),cdSize=u32(tail,e+12),cdOff=u32(tail,e+16);
+ if(cnt===0xFFFF||cdSize===0xFFFFFFFF||cdOff===0xFFFFFFFF)throw E('This file is larger than 4 GB, which this app cannot handle.');
+ if(cdOff+cdSize>size)throw E('This world file is damaged (its file list is cut off).');
+ var cd=new Uint8Array(await file.slice(cdOff,cdOff+cdSize).arrayBuffer()),p=0,ents=[];
+ for(i=0;i<cnt;i++){
+  if(p+46>cd.length||u32(cd,p)!==0x02014b50)throw E('This world file is damaged (bad file list).');
+  var fl=u16(cd,p+8),nl=u16(cd,p+28),xl=u16(cd,p+30),cl=u16(cd,p+32),en={flags:fl,method:u16(cd,p+10),time:u16(cd,p+12),date:u16(cd,p+14),crc:u32(cd,p+16),csize:u32(cd,p+20),usize:u32(cd,p+24),lho:u32(cd,p+42),nameBytes:cd.slice(p+46,p+46+nl)};
+  if(en.csize===0xFFFFFFFF||en.usize===0xFFFFFFFF||en.lho===0xFFFFFFFF)throw E('This file is larger than 4 GB, which this app cannot handle.');
+  en.name=(fl&0x800?TD.decode(en.nameBytes):latin1(en.nameBytes)).replace(/\\/g,'/');
+  ents.push(en);p+=46+nl+xl+cl}
+ return ents}
+function latin1(b){var s='';for(var i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return s}
+async function dataRange(file,en){
+ var h=new Uint8Array(await file.slice(en.lho,en.lho+30).arrayBuffer());
+ if(h.length<30||u32(h,0)!==0x04034b50)throw E('This world file is damaged (a file entry is missing).');
+ var s=en.lho+30+u16(h,26)+u16(h,28);if(s+en.csize>file.size)throw E('This world file is damaged (it ends too early).');
+ return s}
+async function readEntry(file,en){
+ if(en.flags&1)throw E('This world file is password protected or encrypted. Locked lesson worlds cannot be converted.');
+ var s=await dataRange(file,en),raw=new Uint8Array(await file.slice(s,s+en.csize).arrayBuffer()),d;
+ if(en.method===0)d=raw;else if(en.method===8)d=inflate(raw);else throw E('This file uses a compression type this app does not support.');
+ if(crc32(d)!==en.crc)throw E('A file in this world failed its integrity check. The download may be damaged.');
+ return d}
+
+/* ---------- NBT (little-endian, the format of Bedrock level.dat) ---------- */
+function skip(d,p,t,depth){
+ if(depth>256)throw E('The world settings file is unusually deep and was not changed.');
+ var n,i;
+ switch(t){
+  case 1:p+=1;break;case 2:p+=2;break;case 3:case 5:p+=4;break;case 4:case 6:p+=8;break;
+  case 7:n=u32(d,p);p+=4+n;break;
+  case 8:p+=2+u16(d,p);break;
+  case 9:{var et=d[p];n=u32(d,p+1);p+=5;if(et>=1&&et<=6)p+=n*[0,1,2,4,8,4,8][et];else if(n>0){if(et===0)throw E('The world settings file is damaged.');for(i=0;i<n;i++)p=skip(d,p,et,depth+1)}break}
+  case 10:for(;;){if(p>=d.length)throw E('The world settings file is damaged (ends too early).');var tt=d[p++];if(tt===0)break;p+=2+u16(d,p);p=skip(d,p,tt,depth+1)}break;
+  case 11:n=u32(d,p);p+=4+4*n;break;case 12:n=u32(d,p);p+=4+8*n;break;
+  default:throw E('The world settings file has an unknown data type ('+t+') and was not changed.')}
+ if(p>d.length)throw E('The world settings file is damaged (ends too early).');
+ return p}
+function parseLevel(d){
+ if(d.length<12)throw E('level.dat is too small to be a Minecraft world file.');
+ var ver=u32(d,0),len=u32(d,4);
+ if(len<4||len>d.length-8||d[8]!==10)throw E('The world settings file (level.dat) is not in the expected format. The world may be a locked lesson world or damaged.');
+ var rn=u16(d,9),p=11+rn,ents=[];
+ for(;;){
+  if(p>=8+len)throw E('The world settings file ends too early.');
+  var t=d[p];if(t===0){p++;break}
+  var nl=u16(d,p+1),vs=p+3+nl,ve=skip(d,vs,t,0);
+  ents.push({name:TD.decode(d.subarray(p+3,vs)),t:t,hs:p,vs:vs,ve:ve});p=ve}
+ return {ver:ver,len:len,rootEnd:p,head:d.subarray(8,11+rn),ents:ents,d:d}}
+function showVal(d,e){var v=e.vs;
+ switch(e.t){case 1:return String(d[v]>127?d[v]-256:d[v]);case 2:return String((d[v]|d[v+1]<<8)<<16>>16);case 3:return String(i32(d,v));case 4:return '(long)';case 5:case 6:return '(number)';
+  case 8:var s=TD.decode(d.subarray(v+2,v+2+u16(d,v)));return s===''?'(empty)':'"'+(s.length>18?s.slice(0,16)+'…':s)+'"';default:return '(data)'}}
+function isZero(d,e){var v=e.vs,sz=[0,1,2,4,8,4,8][e.t]||0;for(var i=0;i<sz;i++)if(d[v+i])return false;return true}
+var FLAGS=['educationFeaturesEnabled','eduOffer','codebuilder','cloudsave'],TEMPLATE=['isFromWorldTemplate','isWorldTemplateOptionLocked','requiresCopiedPackRemovalCheck'],
+    IDENT=['EducationCreatorId','EducationOid','EducationProductId','EducationReferrerId','EducationWorldCreatorId','worldTemplateUUID','worldTemplateVersion'];
+function patchLevel(d,keepEdu){
+ var L=parseLevel(d),repl=new Map(),changes=[],info={};
+ L.ents.forEach(function(e){
+  if(e.name==='LevelName'&&e.t===8)info.name=TD.decode(d.subarray(e.vs+2,e.vs+2+u16(d,e.vs)));
+  if((e.name==='StorageVersion'||e.name==='NetworkVersion')&&e.t===3)info[e.name]=i32(d,e.vs);
+  if(e.name==='lastOpenedWithVersion'&&e.t===9&&d[e.vs]===3){var n=u32(d,e.vs+1),a=[];for(var i=0;i<n&&i<8;i++)a.push(i32(d,e.vs+5+4*i));info.opened=a}
+  if(e.name==='eduOffer'&&e.t===3)info.eduOffer=i32(d,e.vs);
+  var want=FLAGS.indexOf(e.name)>=0||TEMPLATE.indexOf(e.name)>=0,ident=IDENT.indexOf(e.name)>=0;
+  if(e.name==='educationFeaturesEnabled'&&keepEdu){return}
+  if(want&&e.t>=1&&e.t<=6){if(!isZero(d,e)){var z=new Uint8Array(e.ve-e.vs);repl.set(e,z);changes.push(e.name+': '+showVal(d,e)+' → 0')}}
+  else if(ident&&e.t===8){if(u16(d,e.vs)!==0){repl.set(e,new Uint8Array(2));changes.push(e.name+': '+showVal(d,e)+' → (blank)')}}
+  else if(ident&&e.t>=1&&e.t<=6&&!isZero(d,e)){repl.set(e,new Uint8Array(e.ve-e.vs));changes.push(e.name+' → 0')}
+ });
+ var parts=[],plen=L.head.length,e2;
+ parts.push(L.head);
+ L.ents.forEach(function(e){
+  if(repl.has(e)){var th=d.subarray(e.hs,e.vs),nv=repl.get(e);parts.push(th);parts.push(nv);plen+=th.length+nv.length}
+  else{var s=d.subarray(e.hs,e.ve);parts.push(s);plen+=s.length}});
+ parts.push(new Uint8Array(1));plen+=1;
+ var out=new Uint8Array(8+plen+(d.length-(8+L.len))),o=8;
+ w32(out,0,L.ver);w32(out,4,plen);
+ parts.forEach(function(s){out.set(s,o);o+=s.length});
+ out.set(d.subarray(8+L.len),o);
+ /* check our own work */
+ var C=parseLevel(out);
+ FLAGS.concat(TEMPLATE).forEach(function(nm){C.ents.forEach(function(e){if(e.name===nm&&!(keepEdu&&nm==='educationFeaturesEnabled')&&e.t>=1&&e.t<=6&&!isZero(out,e))throw E('Internal check failed for '+nm+'.')})});
+ info.keptEdu=!!keepEdu;
+ return {out:out,changes:changes,info:info}}
+
+/* ---------- build the .mcworld ---------- */
+function dosNow(){var n=new Date();return {time:n.getHours()<<11|n.getMinutes()<<5|n.getSeconds()>>1,date:Math.max(0,n.getFullYear()-1980)<<9|(n.getMonth()+1)<<5|n.getDate()}}
+function junk(n){return /(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db|desktop\.ini)(\/|$)/i.test(n)||/(^|\/)\._/.test(n)}
+async function convert(file,opts,say){
+ say('Reading the file list…',2);
+ var all=await readZip(file),ents=all.filter(function(en){return en.name&&!/\/$/.test(en.name)&&!junk(en.name)&&en.name.indexOf('../')<0&&en.name[0]!=='/'});
+ if(!ents.length)throw E('That archive is empty.');
+ var lv=ents.filter(function(en){return /(^|\/)level\.dat$/.test(en.name)}).sort(function(a,b){return a.name.length-b.name.length});
+ if(!lv.length)throw E('No level.dat was found, so this is not a Minecraft world. (Is it the right file?)');
+ var prefix=lv[0].name.slice(0,lv[0].name.length-'level.dat'.length),warn=[],keep=ents.filter(function(en){return en.name.indexOf(prefix)===0&&en.name.length>prefix.length});
+ if(lv.length>1)warn.push('This file holds more than one world; only the one at “'+(prefix||'the top level')+'” was converted.');
+ if(!keep.some(function(en){return en.name.indexOf(prefix+'db/')===0}))warn.push('No world data folder (db) was found. The world may be empty.');
+ if(keep.some(function(en){return en.name===prefix+'contents.json'}))warn.push('This looks like a locked lesson world (it has a contents.json). Those are encrypted and usually cannot be converted.');
+ say('Fixing the world settings…',10);
+ var main=keep.find(function(en){return en.name===prefix+'level.dat'}),res=patchLevel(await readEntry(file,main),opts.keep);
+ var old=keep.find(function(en){return en.name===prefix+'level.dat_old'}),oldRes=null;
+ if(old){try{oldRes=patchLevel(await readEntry(file,old),opts.keep)}catch(e){warn.push('The backup settings file (level.dat_old) could not be fixed, so it was left out. This is normal and does not matter.')}}
+ var parts=[],cds=[],off=0,now=dosNow(),copied=0,bytes=0,i;
+ function push(x,len){parts.push(x);off+=len}
+ for(i=0;i<keep.length;i++){
+  var en=keep[i],rel=en.name.slice(prefix.length),patched=null;
+  if(en===main)patched=res.out;else if(en===old){if(!oldRes)continue;patched=oldRes.out}
+  var nb=TE.encode(rel),method,crc,cs,us,dataPart,start=await 0;
+  if(patched){method=0;crc=crc32(patched);cs=us=patched.length;dataPart=patched}
+  else{start=await dataRange(file,en);method=en.method;crc=en.crc;cs=en.csize;us=en.usize;dataPart=file.slice(start,start+cs);copied++;bytes+=cs}
+  var utf=nb.length!==rel.length?0x800:0,h=new Uint8Array(30+nb.length);
+  w32(h,0,0x04034b50);w16(h,4,20);w16(h,6,utf);w16(h,8,method);w16(h,10,patched?now.time:en.time);w16(h,12,patched?now.date:en.date);w32(h,14,crc);w32(h,18,cs);w32(h,22,us);w16(h,26,nb.length);w16(h,28,0);h.set(nb,30);
+  cds.push({nb:nb,utf:utf,method:method,time:patched?now.time:en.time,date:patched?now.date:en.date,crc:crc,cs:cs,us:us,off:off});
+  push(h,h.length);push(dataPart,cs);
+  if(off>0xFFFFFFF0)throw E('The converted world would be larger than 4 GB, which this app cannot create.');
+  if(i%25===0)say('Packing the world…',10+Math.round(i/keep.length*85))}
+ var cdStart=off,cdLen=0;
+ cds.forEach(function(c){var h=new Uint8Array(46+c.nb.length);w32(h,0,0x02014b50);w16(h,4,20);w16(h,6,20);w16(h,8,c.utf);w16(h,10,c.method);w16(h,12,c.time);w16(h,14,c.date);w32(h,16,c.crc);w32(h,20,c.cs);w32(h,24,c.us);w16(h,28,c.nb.length);w32(h,42,c.off);h.set(c.nb,46);parts.push(h);cdLen+=h.length});
+ var eo=new Uint8Array(22);w32(eo,0,0x06054b50);w16(eo,8,cds.length);w16(eo,10,cds.length);w32(eo,12,cdLen);w32(eo,16,cdStart);parts.push(eo);
+ var blob=new Blob(parts,{type:'application/octet-stream'});
+ say('Checking the result…',97);
+ var chk=await readZip(blob),lvOut=chk.find(function(en){return en.name==='level.dat'});
+ if(!lvOut||chk.length!==cds.length)throw E('The converted file failed its own check, so it was not offered for download.');
+ var back=await readEntry(blob,lvOut);parseLevel(back);
+ var nm=(res.info.name||file.name.replace(/\.[^.]*$/,'')||'World').replace(/[\\\/:*?"<>|\u0000-\u001f]+/g,'_').trim().slice(0,60)||'World';
+ return {blob:blob,fileName:nm+'.mcworld',info:res.info,changes:res.changes,warn:warn,files:copied,bytes:bytes}}
+
+/* ---------- the page ---------- */
+function fmtMB(b){return b>=1e9?(b/1e9).toFixed(2)+' GB':(b/1e6).toFixed(1)+' MB'}
+var urls=[];
+function addCard(file){
+ var c=document.createElement('div');c.className='item';
+ c.innerHTML='<h2></h2><div class="fn"></div><div class="bar"><i></i></div><div class="st"></div>';
+ c.querySelector('h2').textContent=file.name;c.querySelector('.fn').textContent=fmtMB(file.size);
+ $('list').prepend(c);return c}
+async function run(file){
+ var c=addCard(file),bar=c.querySelector('.bar i'),st=c.querySelector('.st');
+ function say(t,p){st.textContent=t;bar.style.width=p+'%'}
+ try{
+  var r=await convert(file,{keep:$('keep').checked},say),url=URL.createObjectURL(r.blob);urls.push(url);
+  c.querySelector('.bar').hidden=true;c.querySelector('h2').textContent=(r.info.name||file.name);c.querySelector('.fn').textContent=file.name+' · '+fmtMB(file.size);
+  var ver=r.info.opened&&r.info.opened.length>=3?r.info.opened.slice(0,3).join('.'):null,h='';
+  h+='<div class="ok">✓ Converted and ready</div>';
+  if(ver)h+='<div>Last saved with game version <b>'+ver+'</b>. Use Minecraft Bedrock '+ver+' or newer.</div>';
+  h+='<div>Changed in the world settings:</div><ul>'+(r.changes.length?r.changes.map(function(x){return '<li><code></code></li>'}).join(''):'<li>Nothing needed changing (this world was already clear of Education marks).</li>')+'</ul>';
+  h+='<div>'+r.files+' other files ('+fmtMB(r.bytes)+') were copied across unchanged.</div>';
+  if(r.info.keptEdu)h+='<div class="warn">Education features were kept on. In Bedrock, turn on “Education Edition” in the world’s settings.</div>';
+  if(r.warn.length)h+='<ul class="warn">'+r.warn.map(function(){return '<li></li>'}).join('')+'</ul>';
+  h+='<div class="row"><a class="btn" download>Download '+'<span class="dn"></span></a></div>';
+  st.innerHTML=h;
+  var lis=st.querySelectorAll('ul:not(.warn) li code');for(var i=0;i<lis.length;i++)lis[i].textContent=r.changes[i];
+  var wl=st.querySelectorAll('ul.warn li');for(i=0;i<wl.length;i++)wl[i].textContent='⚠ '+r.warn[i];
+  var a=st.querySelector('a.btn');a.href=url;a.download=r.fileName;st.querySelector('.dn').textContent=r.fileName;
+ }catch(e){
+  c.querySelector('.bar').hidden=true;
+  st.innerHTML='<div class="err">Could not convert this file</div><div></div>';
+  st.lastChild.textContent=e&&e.friendly?e.message:'Something unexpected went wrong while reading this file. It may be damaged or not a world file.';
+  if(!(e&&e.friendly))console.error(e)}}
+function take(files){for(var i=0;i<files.length;i++)run(files[i])}
+var drop=$('drop');
+['dragenter','dragover'].forEach(function(t){drop.addEventListener(t,function(e){e.preventDefault();drop.classList.add('over')})});
+['dragleave','drop'].forEach(function(t){drop.addEventListener(t,function(e){e.preventDefault();drop.classList.remove('over')})});
+drop.addEventListener('drop',function(e){if(e.dataTransfer&&e.dataTransfer.files.length)take(e.dataTransfer.files)});
+drop.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();$('pick').click()}});
+$('pick').addEventListener('change',function(){take(this.files);this.value=''});
+window.addEventListener('dragover',function(e){e.preventDefault()});window.addEventListener('drop',function(e){e.preventDefault()});
+window.__eduTest={inflate:inflate,crc32:crc32,patchLevel:patchLevel,parseLevel:parseLevel};
+})();
+</script>
+</body>
+</html>
